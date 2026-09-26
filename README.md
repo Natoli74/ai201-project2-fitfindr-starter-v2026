@@ -120,6 +120,7 @@ ning Loop
      1. One FULL query and its output, pasted as text.
      2. Your three per-tool terminal tests — the command and what it printed. -->
 
+
 **One full query**
 
 ```
@@ -130,17 +131,88 @@ $ python app.py ask '...'
 **The three tools, tested one at a time**
 
 ```
-$ python -c "from tools import search_listings; print(search_listings('graphic tee', max_price=30))"
+$ python -c "from tools import search_listings; print(search_listings('graphic', 'M', 30.0))"
+
+[{'id': 'lst_002', 'title': 'Y2K Baby Tee — Butterfly Print', 'description': 'Super cute early 2000s baby tee with butterflygraphic. Fitted crop length. Tag says medium but fits like a small.', 'category': 'tops', 'style_tags': ['y2k', 'vintage', 'graphic tee', 'cottagecore'], 'size': 'S/M', 'condition': 'excellent', 'price': 18.0, 'colors': ['white', 'pink', 'purple'], 'brand': None, 'platform': 'depop'}, {'id': 'lst_017', 'title': 'Mesh Long-Sleeve Top — Black', 'description': 'Sheer black mesh long-sleeve. Great for layering under a graphic tee or over a bralette. Stretchy material, fits true to size.', 'category': 'tops', 'style_tags': ['y2k', 'grunge', 'goth', 'layering'], 'size': 'S/M', 'condition': 'excellent', 'price': 15.0, 'colors': ['black'], 'brand': None, 'platform': 'depop'}]
 
 ```
 
 ```
-$ python -c "from tools import suggest_outfit; ..."
+$ python -c "from tools import suggest_outfit; print(suggest_outfit({'title': 'Vintage Tee'}, []))"
+
+Because a **"Vintage Tee"** is a foundational wardrobe staple that can range from a washed-out band tee to a faded collegiate logo or a simple, perfectly worn-in solid cotton, it is one of the most versatile pieces you can own. Its superpower is adding effortless "cool-girl/cool-guy" energy and casual texture to an outfit. 
+
+Here are general styling tips, pairing ideas, and specific outfit directions for a classic vintage tee.
+
+---
+
+### **General Styling & Pairing Tips**
+
+1. **Play with Proportions (High-Low):** Vintage tees usually have a relaxed, boxy, or slightly worn drape. Balance this volume by pairing it with structured, tailored, or sleek bottoms (like pleated trousers, sharp blazers, or straight-leg denim).
+2. **The "Tuck" Matters:** 
+   * *Full Tuck:* Creates a cleaner, more intentional silhouette, especially with high-waisted pants or skirts.
+   * *French Tuck (Front tuck only):* Enhances the casual, effortless vibe without drowning your shape.
+   * *Untucked:* Best with biker shorts, ultra-skinny jeans, or when paired with a structured jacket thrown over top.
+3. **Neckline & Accessories:** Crewneck vintage tees usually call for statement jewelry to break up the expanse of fabric. Think layered gold chains, a chunky pendant, or chunky hoop earrings.
+4. **Distressing:** If the tee has holes or heavy fading, lean into it with edgy accessories, or contrast it with ultra-refined pieces (like fine jewelry or a structured leather handbag) to keep the look elevated rather than sloppy.
+
+---
+
+### **Wearable Outfit Directions**
+
+#### **1. The Elevated Casual (Smart-Casual Chic)**
+*Best for: Brunch, casual Fridays at the office, weekend errands.*
+
+* **The Vibe:** Effortlessly put-together by mixing relaxed vintage elements with sharp tailoring.
+* **Clothing:** 
+  * Vintage tee (fully tucked).
+  * High-waisted, pleated trousers in beige, charcoal grey, or navy.
+  * An oversized blazer (houndstooth, black, or neutral plaid) worn open.
+* **Shoes:** Retro-style sneakers (like Adidas Sambas or New Balance 550s) or sleek leather loafers.
+* **Accessories:** A structured leather shoulder bag, a thin leather belt with a subtle buckle, and layered gold necklaces.
+* **Color Palette:** Neutrals (black, white, grey, camel) accented by the graphic or color of the tee.
+
+#### **2. The 90s Downtown Edge (Cool & Confident)**
+*Best for: Concerts, date nights, going out with friends.*
+
+* **The Vibe:** Edgy, nostalgic, and undeniably cool.
+* **Clothing:** 
+  * Vintage tee (either slightly cropped, tied at the waist, or left loosely untucked).
+  * Dark-wash or black straight-leg/baggy denim with a worn-in wash, or a black leather mini skirt.
+  * Optional: A distressed leather biker jacket.
+* **Shoes:** Black leather ankle boots (combat boots like Dr. Martens or pointed-toe booties).
+* **Accessories:** Silver hardware—thick silver hoops, a chain-link bracelet, and a small black shoulder bag (90s baguette style).
+* **Color Palette:** Black, charcoal, faded indigo, and pops of color depending on the tee’s graphic.
+
+#### **3. Effortless Warm-Weather Chic (Sun-Drenched Minimalist)**
+*Best for: Farmers markets, beach getaways, casual summer days.*
+
+* **The Vibe:** Breezy, comfortable, and classic Americana.
+* **Clothing:** 
+  * Vintage tee (French-tucked).
+  * Linen trousers in white or olive, or high-waisted denim cutoff shorts.
+* **Shoes:** Tan leather slides, Birkenstocks, or minimalist canvas trainers.
+* **Accessories:** Tortoiseshell sunglasses, a straw basket bag or canvas tote, and delicate gold jewelry.
+* **Color Palette:** White, cream, tan, and faded earth tones.
+
+#### **4. Athleisure-Adjacent (Sporty & Retro)**
+*Best for: Travel days, walking the dog, relaxing on weekends.*
+
+* **The Vibe:** Comfortable without looking like you just rolled out of bed.
+* **Clothing:** 
+  * Vintage tee (slightly oversized).
+  * Ribbed biker shorts (black) or high-rise fleece sweatpants in heather grey.
+  * A lightweight nylon coach’s jacket or an unbuttoned flannel shirt tied around the waist.
+* **Shoes:** Classic white tennis shoes with white tube socks.
+* **Accessories:** A baseball cap (either plain or vintage sports logo), a nylon crossbody bag, and sunglasses.
+* **Color Palette:** Heather grey, black, white, and primary accent colors from the tee.
 
 ```
 
 ```
-$ python -c "from tools import create_fit_card; ..."
+$ python -c "from tools import create_fit_card; print(create_fit_card('Pair with jeans', {'title': 'Vintage Tee'}))"
+
+Scored the ultimate graphic find! 🎸 Paired this Vintage Tee with classic denim for that effortless, lived-in cool. Nothing beats a timeless combo. ✨👖
 
 ```
 

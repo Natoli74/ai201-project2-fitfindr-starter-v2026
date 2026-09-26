@@ -20,8 +20,10 @@ That last line is what your loop branches on. "Returns a list" earns nothing —
 the description has to say what is *in* the list.
 """
 
-import config  # noqa: F401 — you'll use this in search_listings
-from generate import generate
+import json
+import re
+
+from generate import generate as generate_text
 from utils.data_loader import load_listings
 
 
@@ -78,8 +80,27 @@ def search_listings(
     Test it from a terminal before you move on:
         python -c "from tools import search_listings; print(search_listings('graphic tee', max_price=30))"
     """
-    # TODO: replace this with your implementation
-    return []
+    description_terms = description.casefold()
+    requested_size = (
+        set(re.findall(r"[a-z0-9]+", size.casefold())) if size else set()
+    )
+
+    matches = []
+    for listing in load_listings():
+        listing_text = f"{listing.get('title', '')} {listing.get('description', '')}"
+        if description_terms not in listing_text.casefold():
+            continue
+        if requested_size:
+            listing_sizes = set(
+                re.findall(r"[a-z0-9]+", str(listing.get("size", "")).casefold())
+            )
+            if not requested_size.issubset(listing_sizes):
+                continue
+        if max_price is not None and listing.get("price", float("inf")) > max_price:
+            continue
+        matches.append(listing)
+
+    return matches
 
 
 # ── Tool 2: suggest_outfit ────────────────────────────────────────────────────
@@ -112,8 +133,29 @@ def suggest_outfit(new_item: dict, wardrobe: dict) -> str:
     Test it from a terminal before you move on:
         python -c "from tools import suggest_outfit; from utils.data_loader import get_example_wardrobe, load_listings; print(suggest_outfit(load_listings()[0], get_example_wardrobe()))"
     """
-    # TODO: replace this with your implementation
-    return ""
+    if isinstance(wardrobe, dict):
+        wardrobe_items = wardrobe.get("items", [])
+    else:
+        wardrobe_items = wardrobe or []
+    item_text = json.dumps(new_item, ensure_ascii=True)
+
+    if wardrobe_items:
+        wardrobe_text = json.dumps(wardrobe_items, ensure_ascii=True)
+        prompt = (
+            "Create 2-3 outfit ideas that pair this new clothing item with "
+            "specific pieces from the user's wardrobe. Name the wardrobe "
+            "pieces you use and explain the styling briefly.\n\n"
+            f"New item:\n{item_text}\n\nWardrobe items:\n{wardrobe_text}"
+        )
+    else:
+        prompt = (
+            "Give general styling and pairing tips for this clothing item. "
+            "Suggest a few wearable outfit directions, including colors, "
+            "shoes, and accessories where useful.\n\n"
+            f"New item:\n{item_text}"
+        )
+
+    return generate_text(prompt)
 
 
 # ── Tool 3: create_fit_card ───────────────────────────────────────────────────
@@ -152,5 +194,11 @@ def create_fit_card(outfit: str, new_item: dict) -> str:
     Test it from a terminal before you move on:
         python -c "from tools import create_fit_card; from utils.data_loader import load_listings; print(create_fit_card('jeans and white sneakers', load_listings()[0]))"
     """
-    # TODO: replace this with your implementation
-    return ""
+    prompt = (
+        "Write a short, engaging social-media-ready fit card caption for "
+        "the proposed outfit. Reference the key details of the new item and "
+        "the outfit, and keep it concise and specific.\n\n"
+        f"New item:\n{json.dumps(new_item, ensure_ascii=True)}\n\n"
+        f"Proposed outfit:\n{outfit}"
+    )
+    return generate_text(prompt)
