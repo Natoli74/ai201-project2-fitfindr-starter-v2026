@@ -13,6 +13,8 @@ Build and test your three tools in `tools.py` first. Then come here.
     python agent.py          runs both example paths below
 """
 
+import re
+
 import config
 import trace
 from tools import search_listings, suggest_outfit, create_fit_card
@@ -49,13 +51,13 @@ def new_session(query: str, wardrobe: dict) -> dict:
 
 # ── planning loop ─────────────────────────────────────────────────────────────
 
-def run_agent(query: str, wardrobe: dict) -> dict:
+def run_agent(query_dict: dict | str, wardrobe: dict) -> dict:
     """
     Run the loop once and return the finished session.
 
     Args:
-        query:    what the user asked for, in plain language
-                  (e.g. "vintage graphic tee under $30, size M").
+        query_dict: search values with ``description``, ``size``, and
+                    ``max_price`` keys.
         wardrobe: a wardrobe dict — get_example_wardrobe() or
                   get_empty_wardrobe() from utils/data_loader.py.
 
@@ -105,24 +107,67 @@ def run_agent(query: str, wardrobe: dict) -> dict:
       • A handler for ModelUnavailable, so a bad key produces a message rather
         than a stack trace. The import is already at the top of this file.
     """
-    session = new_session(query, wardrobe)
+    if isinstance(query_dict, str):
+        price_match = re.search(
+            r"\bunder\s+\$?(\d+(?:\.\d+)?)", query_dict, re.IGNORECASE
+        )
+        size_match = re.search(
+            r"(?:\bin\s+)?size\s+([a-z0-9/]+)", query_dict, re.IGNORECASE
+        )
+        query_dict = {
+            "description": re.sub(
+                r"\bunder\s+\$?\d+(?:\.\d+)?|(?:\bin\s+)?size\s+[a-z0-9/]+",
+                "",
+                query_dict,
+                flags=re.IGNORECASE,
+            ).strip(),
+            "size": size_match.group(1) if size_match else None,
+            "max_price": float(price_match.group(1)) if price_match else None,
+        }
 
-    # TODO: delete these two lines and build the loop.
-    session["error"] = "The planning loop isn't built yet — see the TODO in agent.py."
+    session = {
+        "listings": [],
+        "selected_item": None,
+        "outfit": None,
+        "fit_card": None,
+        "status": "running",
+        "message": "",
+    }
+
+    session["listings"] = search_listings(
+        query_dict.get("description", ""),
+        query_dict.get("size"),
+        query_dict.get("max_price"),
+    )
+
+    if not session["listings"]:
+        session["status"] = "stopped_empty"
+        session["message"] = (
+            "No matching items found. Try increasing your budget ceiling, "
+            "relaxing size constraints, or using broader search terms."
+        )
+        return session
+
+    session["selected_item"] = session["listings"][0]
+    session["outfit"] = suggest_outfit(session["selected_item"], wardrobe)
+    session["fit_card"] = create_fit_card(
+        session["outfit"], session["selected_item"]
+    )
+    session["status"] = "completed"
     return session
 
 
 # ── running it directly ───────────────────────────────────────────────────────
 
 def _show(session: dict) -> None:
-    if session["error"]:
-        print(f"  stopped: {session['error']}")
+    if session["status"] == "stopped_empty":
+        print(f"  stopped: {session['message']}")
         print(f"  fit_card is {session['fit_card']!r} — it should still be None here")
         return
 
     item = session["selected_item"] or {}
     print(f"  found:    {item.get('title')} — ${item.get('price')} on {item.get('platform')}")
-    print(f"  outfit:   {session['outfit_suggestion']}")
+    print(f"  outfit:   {session['outfit']}")
     print(f"  fit card: {session['fit_card']}")
 
 
@@ -131,13 +176,17 @@ if __name__ == "__main__":
 
     print("=== A query the data can match ===")
     _show(run_agent(
-        query="looking for a vintage graphic tee under $30",
+        query_dict={"description": "vintage graphic tee", "max_price": 30},
         wardrobe=get_example_wardrobe(),
     ))
 
     print("\n=== A query it can't ===")
     _show(run_agent(
-        query="designer ballgown size XXS under $5",
+        query_dict={
+            "description": "designer ballgown",
+            "size": "XXS",
+            "max_price": 5,
+        },
         wardrobe=get_example_wardrobe(),
     ))
 

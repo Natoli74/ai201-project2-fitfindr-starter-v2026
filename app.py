@@ -114,13 +114,13 @@ def _ask_one(query, wardrobe, use_trace):
     session = run_agent(query, wardrobe)
 
     print()
-    if session["error"]:
-        print(f"  {session['error']}")
+    if session["status"] == "stopped_empty":
+        print(f"  {session['message']}")
     else:
         item = session["selected_item"] or {}
         print(f"  Found:    {item.get('title')} — ${item.get('price')} on {item.get('platform')}")
         print()
-        print(f"  Outfit:   {session['outfit_suggestion']}")
+        print(f"  Outfit:   {session['outfit']}")
         print()
         print(f"  Fit card: {session['fit_card']}")
     print()

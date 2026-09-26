@@ -80,15 +80,21 @@ def search_listings(
     Test it from a terminal before you move on:
         python -c "from tools import search_listings; print(search_listings('graphic tee', max_price=30))"
     """
-    description_terms = description.casefold()
+    description_terms = re.findall(r"[a-z0-9]+", description.casefold())
     requested_size = (
         set(re.findall(r"[a-z0-9]+", size.casefold())) if size else set()
     )
 
     matches = []
     for listing in load_listings():
-        listing_text = f"{listing.get('title', '')} {listing.get('description', '')}"
-        if description_terms not in listing_text.casefold():
+        listing_text = " ".join(
+            [
+                str(listing.get("title", "")),
+                str(listing.get("description", "")),
+                " ".join(str(tag) for tag in listing.get("style_tags", [])),
+            ]
+        ).casefold()
+        if any(term not in listing_text for term in description_terms):
             continue
         if requested_size:
             listing_sizes = set(

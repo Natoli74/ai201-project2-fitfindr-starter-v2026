@@ -115,16 +115,55 @@ ning Loop
 
 ## Sample Run
 
-<!-- Two things go here.
-
-     1. One FULL query and its output, pasted as text.
-     2. Your three per-tool terminal tests — the command and what it printed. -->
-
-
 **One full query**
 
 ```
-$ python app.py ask '...'
+$ python app.py ask 'vintage graphic tee under $30'
+
+     Found:    Y2K Baby Tee — Butterfly Print — $18.0 on depop
+
+     Outfit:   Here are 3 Y2K-inspired outfit ideas pairing your new butterfly baby tee with pieces from your wardrobe:
+
+     ### Outfit 1: Classic Y2K Streetwear
+     * **Wardrobe Pieces Used:** 
+     * `Baggy straight-leg jeans, dark wash` (w_001)
+     * `Chunky white sneakers` (w_007)
+     * `Black crossbody bag` (w_010)
+     * **Styling Explanation:** This look leans directly into the iconic early 2000s silhouette by pairing a fitted, cropped top with low-ish, high-waisted baggy denim. The contrast between the tight baby tee and the relaxed, dark-wash jeans creates thateffortless Y2K skater-girl vibe. Tie it all together with chunky white sneakers to echo the white in the tee, and a minimalist black crossbody bag for everyday wear.
+
+     ### Outfit 2: Edgy Contrast (Y2K Meets Grunge)
+     * **Wardrobe Pieces Used:** 
+     * `Baggy straight-leg jeans, dark wash` (w_001)
+     * `Vintage black denim jacket` (w_006)
+     * `Black combat boots` (w_008)
+     * `Black crossbody bag` (w_010)
+     * **Styling Explanation:** Give the sweet, nostalgic butterfly graphic a tougher edge by layering your slightly cropped vintage black denim jacket over top. Pair it with dark-wash baggy jeans and lace-up black combat boots to ground the pastel pinksand purples of the tee with heavy doses of black. It’s a great transitional look that mixes vintage girly energy with grungestreetwear.
+
+     ### Outfit 3: Casual Y2K-Casual with Earth Tones
+     * **Wardrobe Pieces Used:** 
+     * `Wide-leg khaki trousers` (w_002)
+     * `Brown leather belt` (w_009)
+     * `Chunky white sneakers` (w_007)
+     * **Styling Explanation:** For a slightly more unexpected combination, pair the ultra-feminine baby tee with wide-leg khaki trousers. Cinch the trousers with the brown leather belt to add definition at the waist, contrasting the casual earth tones of the pants with the playful pink and white graphic top. Finish with chunky white sneakers to keep the outfit light, airy, and grounded in current streetwear trends.
+
+     Fit card: 🦋 **Unlocked: The ultimate Y2K baby tee.** 
+
+     Paired your new butterfly graphic crop with dark-wash baggy denim and chunky white sneakers for effortless 2000s skater energy. (Bonus: styling it with khaki trousers and combat boots next! ✨)
+
+     #Y2KStyle #BabyTee #OutfitInspo #Streetwear
+
+     2 model calls this session, 1455 prompt + 588 output tokens
+
+```
+
+**One full query (branch)**
+
+```
+$ python app.py ask 'designer ballgown size XXS under $5'
+
+  No matching items found. Try increasing your budget ceiling, relaxing size constraints, or using broader search terms.
+
+  0 model calls this session
 
 ```
 
