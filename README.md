@@ -38,24 +38,30 @@
 <!-- ═══════════════════════ UNIT 3 — THE BUILD ═══════════════════════ -->
 
 ## What This Does
-
-
-
+-<!-- Three or four sentences: what a user asks for, and what they get back. -->
 
 
 ---
 
 ## Tool Inventory
 
-<!-- Four lines per tool. This is worth 2 points and it's the single most
-     common place students lose them.
+1. `search_listings(description: str, size: str | None, max_price: float) -> list[dict]`
+   - **Does:** Filters candidate listings in `data/listings.json` matching the description substring, size, and price ceiling.
+   - **Inputs:** `description` (str), `size` (str or None), `max_price` (float).
+   - **Returns:** A list of listing dicts, each with `id`, `title`, `price`, `size`, `platform`, `description`, and `condition`.
+   - **Empty Case:** Returns an empty list `[]` (never `None`, never throws an exception).
 
-     "Returns a list" earns NOTHING. The description has to say what is IN
-     the list.
+2. `suggest_outfit(new_item: dict, wardrobe: list[dict]) -> str`
+   - **Does:** Calls the LLM to generate 2-3 outfit pairing suggestions combining `new_item` with existing items in `wardrobe`.
+   - **Inputs:** `new_item` (dict matching listing schema), `wardrobe` (list of item dicts from schema).
+   - **Returns:** A string containing markdown-formatted pairing suggestions.
+   - **Empty Case:** If `wardrobe` is empty `[]`, returns general styling and pairing advice for `new_item`.
 
-     The empty case isn't optional either — it's the thing your loop branches
-     on, and if you don't decide it here you'll discover it as a crash in
-     Milestone 5. -->
+3. `create_fit_card(outfit: str, new_item: dict) -> str`
+   - **Does:** Calls the LLM to write a catchy, social-media-ready caption and hashtag set for the proposed outfit.
+   - **Inputs:** `outfit` (str from `suggest_outfit`), `new_item` (dict matching listing schema).
+   - **Returns:** A concise caption string formatted for posting.
+   - **Empty Case:** If `outfit` is empty or invalid, generates a standard single-item feature caption for `new_item`.
 
 ### `search_listings`
 
@@ -80,18 +86,22 @@
 
 ---
 
-## Planning Loop
+ning Loop
 
-<!-- Your branch rule, stated as a rule — the condition AND both paths — plus
-     the file and function that holds it.
-
-     Like this:
-       "If search_listings returns an empty list, put a message in the session
-        and stop. Otherwise take the first result and go to suggest_outfit."
-        — agent.py::run_agent
-
-     The grader checks your code against what you claim here, so the file and
-     function have to be real. -->
+**Branch Rule (`agent.py::run_agent`):**
+1. Call `search_listings(description, size, max_price)`.
+2. Save result to `session["listings"]`.
+3. **Branch Condition:** If `session["listings"]` is empty `[]`:
+   - Set `session["status"] = "stopped_empty"`
+   - Set `session["message"] = "No matching items found. Try increasing your budget, relaxing size requirements, or broadening search keywords."`
+   - **STOP** and return `session`.
+4. Otherwise:
+   - Pop `session["listings"][0]` into `session["selected_item"]`.
+   - Call `suggest_outfit(session["selected_item"], wardrobe)`.
+   - Save output to `session["outfit"]`.
+   - Call `create_fit_card(session["outfit"], session["selected_item"])`.
+   - Save output to `session["fit_card"]`.
+   - Return `session`.
 
 **Branch rule:**
 
