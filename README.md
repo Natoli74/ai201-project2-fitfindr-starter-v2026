@@ -1,23 +1,5 @@
 # FitFindr
 
-> ### 👋 Start here
->
-> **New to this repo? Read [RUNNING.md](RUNNING.md) first** — setup, every
-> command, and what to do when something breaks.
->
-> Once `python test.py` passes:
->
-> ```bash
-> python app.py listings --full -n 6      # read the data (Milestone 1)
-> python app.py fields                    # what you can filter on
-> python app.py ask 'vintage graphic tee under $30'
-> ```
->
-> All three tools are stubs, so that last command will do nothing useful yet.
-> That's the starting position.
->
-> **The rest of this file is your submission.** Fill it in as you go.
-
 ---
 
 <!-- ─────────────────────────────────────────────────────────────────────────
@@ -35,11 +17,11 @@
      gets none.
      ───────────────────────────────────────────────────────────────────────── -->
 
-<!-- ═══════════════════════ UNIT 3 — THE BUILD ═══════════════════════ -->
+# Unit 3
 
 ## What This Does
--<!-- Three or four sentences: what a user asks for, and what they get back. -->
 
+FitFindr accepts a natural-language thrift query, such as a clothing description with an optional size and maximum price, along with a list of items from the user's wardrobe. It searches the available inventory for listings that match the requested keywords and filters. For the best matching item, it generates outfit pairing suggestions using the user's existing wardrobe, or provides general styling advice when the wardrobe is empty. Finally, it turns the proposed outfit and new item into a short, engaging social-media caption or fit card.
 
 ---
 
@@ -63,32 +45,10 @@
    - **Returns:** A concise caption string formatted for posting.
    - **Empty Case:** If `outfit` is empty or invalid, generates a standard single-item feature caption for `new_item`.
 
-### `search_listings`
 
-- **What it does:**
-- **Inputs:** <!-- name and type each: `max_price` (float), not "a price" -->
-- **Returns:**
-- **When it has nothing:**
+## Planning Loop
 
-### `suggest_outfit`
-
-- **What it does:**
-- **Inputs:**
-- **Returns:**
-- **When it has nothing:**
-
-### `create_fit_card`
-
-- **What it does:**
-- **Inputs:**
-- **Returns:**
-- **When it has nothing:**
-
----
-
-ning Loop
-
-**Branch Rule (`agent.py::run_agent`):**
+**Branch Rule:**
 1. Call `search_listings(description, size, max_price)`.
 2. Save result to `session["listings"]`.
 3. **Branch Condition:** If `session["listings"]` is empty `[]`:
@@ -103,13 +63,9 @@ ning Loop
    - Save output to `session["fit_card"]`.
    - Return `session`.
 
-**Branch rule:**
-
-**Where it lives:** `agent.py::run_agent`
-
-**How the query is parsed:** <!-- regex, string splitting, or asking the model — say which -->
-
-**What moves through the session:** <!-- which fields, in what order -->
+- **Where it lives:** `agent.py::run_agent`
+- **How the query is parsed:** Handled upstream by `app.py` parsing CLI options and string arguments into a clean `query_dict` containing `description`, `size`, and `max_price`.
+- **What moves through the session:** `query_dict` $\rightarrow$ `session["listings"]` $\rightarrow$ `session["selected_item"]` $\rightarrow$ `session["outfit"]` $\rightarrow$ `session["fit_card"]`.
 
 ---
 
@@ -125,14 +81,14 @@ $ python app.py ask 'vintage graphic tee under $30'
      Outfit:   Here are 3 Y2K-inspired outfit ideas pairing your new butterfly baby tee with pieces from your wardrobe:
 
      ### Outfit 1: Classic Y2K Streetwear
-     * **Wardrobe Pieces Used:** 
+     * **Wardrobe Pieces Used:**
      * `Baggy straight-leg jeans, dark wash` (w_001)
      * `Chunky white sneakers` (w_007)
      * `Black crossbody bag` (w_010)
      * **Styling Explanation:** This look leans directly into the iconic early 2000s silhouette by pairing a fitted, cropped top with low-ish, high-waisted baggy denim. The contrast between the tight baby tee and the relaxed, dark-wash jeans creates thateffortless Y2K skater-girl vibe. Tie it all together with chunky white sneakers to echo the white in the tee, and a minimalist black crossbody bag for everyday wear.
 
      ### Outfit 2: Edgy Contrast (Y2K Meets Grunge)
-     * **Wardrobe Pieces Used:** 
+     * **Wardrobe Pieces Used:**
      * `Baggy straight-leg jeans, dark wash` (w_001)
      * `Vintage black denim jacket` (w_006)
      * `Black combat boots` (w_008)
@@ -140,13 +96,13 @@ $ python app.py ask 'vintage graphic tee under $30'
      * **Styling Explanation:** Give the sweet, nostalgic butterfly graphic a tougher edge by layering your slightly cropped vintage black denim jacket over top. Pair it with dark-wash baggy jeans and lace-up black combat boots to ground the pastel pinksand purples of the tee with heavy doses of black. It’s a great transitional look that mixes vintage girly energy with grungestreetwear.
 
      ### Outfit 3: Casual Y2K-Casual with Earth Tones
-     * **Wardrobe Pieces Used:** 
+     * **Wardrobe Pieces Used:**
      * `Wide-leg khaki trousers` (w_002)
      * `Brown leather belt` (w_009)
      * `Chunky white sneakers` (w_007)
      * **Styling Explanation:** For a slightly more unexpected combination, pair the ultra-feminine baby tee with wide-leg khaki trousers. Cinch the trousers with the brown leather belt to add definition at the waist, contrasting the casual earth tones of the pants with the playful pink and white graphic top. Finish with chunky white sneakers to keep the outfit light, airy, and grounded in current streetwear trends.
 
-     Fit card: 🦋 **Unlocked: The ultimate Y2K baby tee.** 
+     Fit card: 🦋 **Unlocked: The ultimate Y2K baby tee.**
 
      Paired your new butterfly graphic crop with dark-wash baggy denim and chunky white sneakers for effortless 2000s skater energy. (Bonus: styling it with khaki trousers and combat boots next! ✨)
 
@@ -179,7 +135,7 @@ $ python -c "from tools import search_listings; print(search_listings('graphic',
 ```
 $ python -c "from tools import suggest_outfit; print(suggest_outfit({'title': 'Vintage Tee'}, []))"
 
-Because a **"Vintage Tee"** is a foundational wardrobe staple that can range from a washed-out band tee to a faded collegiate logo or a simple, perfectly worn-in solid cotton, it is one of the most versatile pieces you can own. Its superpower is adding effortless "cool-girl/cool-guy" energy and casual texture to an outfit. 
+Because a **"Vintage Tee"** is a foundational wardrobe staple that can range from a washed-out band tee to a faded collegiate logo or a simple, perfectly worn-in solid cotton, it is one of the most versatile pieces you can own. Its superpower is adding effortless "cool-girl/cool-guy" energy and casual texture to an outfit.
 
 Here are general styling tips, pairing ideas, and specific outfit directions for a classic vintage tee.
 
@@ -188,7 +144,7 @@ Here are general styling tips, pairing ideas, and specific outfit directions for
 ### **General Styling & Pairing Tips**
 
 1. **Play with Proportions (High-Low):** Vintage tees usually have a relaxed, boxy, or slightly worn drape. Balance this volume by pairing it with structured, tailored, or sleek bottoms (like pleated trousers, sharp blazers, or straight-leg denim).
-2. **The "Tuck" Matters:** 
+2. **The "Tuck" Matters:**
    * *Full Tuck:* Creates a cleaner, more intentional silhouette, especially with high-waisted pants or skirts.
    * *French Tuck (Front tuck only):* Enhances the casual, effortless vibe without drowning your shape.
    * *Untucked:* Best with biker shorts, ultra-skinny jeans, or when paired with a structured jacket thrown over top.
@@ -203,7 +159,7 @@ Here are general styling tips, pairing ideas, and specific outfit directions for
 *Best for: Brunch, casual Fridays at the office, weekend errands.*
 
 * **The Vibe:** Effortlessly put-together by mixing relaxed vintage elements with sharp tailoring.
-* **Clothing:** 
+* **Clothing:**
   * Vintage tee (fully tucked).
   * High-waisted, pleated trousers in beige, charcoal grey, or navy.
   * An oversized blazer (houndstooth, black, or neutral plaid) worn open.
@@ -215,7 +171,7 @@ Here are general styling tips, pairing ideas, and specific outfit directions for
 *Best for: Concerts, date nights, going out with friends.*
 
 * **The Vibe:** Edgy, nostalgic, and undeniably cool.
-* **Clothing:** 
+* **Clothing:**
   * Vintage tee (either slightly cropped, tied at the waist, or left loosely untucked).
   * Dark-wash or black straight-leg/baggy denim with a worn-in wash, or a black leather mini skirt.
   * Optional: A distressed leather biker jacket.
@@ -227,7 +183,7 @@ Here are general styling tips, pairing ideas, and specific outfit directions for
 *Best for: Farmers markets, beach getaways, casual summer days.*
 
 * **The Vibe:** Breezy, comfortable, and classic Americana.
-* **Clothing:** 
+* **Clothing:**
   * Vintage tee (French-tucked).
   * Linen trousers in white or olive, or high-waisted denim cutoff shorts.
 * **Shoes:** Tan leather slides, Birkenstocks, or minimalist canvas trainers.
@@ -238,7 +194,7 @@ Here are general styling tips, pairing ideas, and specific outfit directions for
 *Best for: Travel days, walking the dog, relaxing on weekends.*
 
 * **The Vibe:** Comfortable without looking like you just rolled out of bed.
-* **Clothing:** 
+* **Clothing:**
   * Vintage tee (slightly oversized).
   * Ribbed biker shorts (black) or high-rise fleece sweatpants in heather grey.
   * A lightweight nylon coach’s jacket or an unbuttoned flannel shirt tied around the waist.
@@ -268,15 +224,15 @@ Scored the ultimate graphic find! 🎸 Paired this Vintage Tee with classic deni
 
 **Moment 1**
 
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+- _What I asked for:_ I asked Copilot how to handle the optional `size` and `max_price` filters defensively in `search_listings`, especially when a caller provides `None` or an unexpected value type.
+- _What came back:_ It recommended checking optional values before filtering, normalizing text with case-insensitive matching, and avoiding operations such as calling string methods on `None` or comparing incompatible price types.
+- _What I changed:_ I made the size and price filters conditional, converted the supplied size to a normalized string before matching, and applied the price ceiling only when `max_price` is provided. This keeps omitted filters from causing type errors and returns `[]` when nothing matches.
 
 **Moment 2**
 
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+- _What I asked for:_ I asked Copilot to evaluate the empty-search branch message in `agent.py` and check whether it gave the user useful next steps instead of only saying that no results were found.
+- _What came back:_ It suggested explicitly naming practical changes the user could make, such as increasing the price limit, relaxing the size requirement, or broadening the search terms.
+- _What I changed:_ I used the message `No matching items found. Try increasing your budget ceiling, relaxing size constraints, or using broader search terms.` and returned immediately with `status` set to `stopped_empty`, so the user receives actionable guidance and no unnecessary model calls are made.
 
 <!-- ═══════════════════════ UNIT 4 — THE TEST ═══════════════════════
 
@@ -297,12 +253,12 @@ Scored the ultimate graphic find! 🎸 Paired this Vintage Tee with classic deni
      into results/. Paste it here and fill in the verdicts. -->
 
 | Criterion | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict |
-|---|---|---|---|---|---|---|---|
-| 1.  |  |  |  |  |  |  |  |
-| 2.  |  |  |  |  |  |  |  |
-| 3.  |  |  |  |  |  |  |  |
-| 4.  |  |  |  |  |  |  |  |
-| 5.  |  |  |  |  |  |  |  |
+| --------- | ------ | ----- | ----- | ----- | ----- | ----- | ------- |
+| 1.        |        |       |       |       |       |       |         |
+| 2.        |        |       |       |       |       |       |         |
+| 3.        |        |       |       |       |       |       |         |
+| 4.        |        |       |       |       |       |       |         |
+| 5.        |        |       |       |       |       |       |         |
 
 **Real output from one try**, pasted as text, naming the file and function
 that produced it:
@@ -331,17 +287,15 @@ that produced it:
      Look for a pattern. Three misses on the same tool is one problem, not
      three. -->
 
-| # | Criterion | Target | Verdict | How I decided |
-|---|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
-| 4 |  |  |  |  |
-| 5 |  |  |  |  |
+| #   | Criterion | Target | Verdict | How I decided |
+| --- | --------- | ------ | ------- | ------------- |
+| 1   |           |        |         |               |
+| 2   |           |        |         |               |
+| 3   |           |        |         |               |
+| 4   |           |        |         |               |
+| 5   |           |        |         |               |
 
 **Diagnoses**
-
-
 
 ---
 
@@ -374,8 +328,6 @@ behaved differently afterwards. If the rewire didn't work, say exactly where it
 broke — the error text and the last thing that worked. That earns the point in
 full. -->
 
-
-
 ---
 
 ## The Improvement
@@ -392,19 +344,17 @@ full. -->
 ### Run Log — After
 
 | Criterion | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict |
-|---|---|---|---|---|---|---|---|
-| 1.  |  |  |  |  |  |  |  |
-| 2.  |  |  |  |  |  |  |  |
-| 3.  |  |  |  |  |  |  |  |
-| 4.  |  |  |  |  |  |  |  |
-| 5.  |  |  |  |  |  |  |  |
+| --------- | ------ | ----- | ----- | ----- | ----- | ----- | ------- |
+| 1.        |        |       |       |       |       |       |         |
+| 2.        |        |       |       |       |       |       |         |
+| 3.        |        |       |       |       |       |       |         |
+| 4.        |        |       |       |       |       |       |         |
+| 5.        |        |       |       |       |       |       |         |
 
 **Did it help, and how do I know:**
 
 <!-- If it made things worse, say that. Honestly reported, that earns full
      credit and is more interesting than one that worked. -->
-
-
 
 ---
 
@@ -414,21 +364,19 @@ full. -->
      you did. "I ran out of time" is fine if it's true. Pretending nothing is
      left is not. -->
 
-
-
 <!-- ═════════════════════════════════════════════════════════════════════
 
      SUBMISSION CHECKLIST — unit 3
 
-       [ ] criteria.md has five numbered criteria, each with a target
-       [ ] Each criterion has a reason underneath it
-       [ ] All five unit 3 sections above have real content
-       [ ] Tool Inventory: all three tools, inputs WITH TYPES, a specific
+       [x] criteria.md has five numbered criteria, each with a target
+       [x] Each criterion has a reason underneath it
+       [x] All five unit 3 sections above have real content
+       [x] Tool Inventory: all three tools, inputs WITH TYPES, a specific
            return value, and the empty case
-       [ ] Planning Loop names the branch rule and agent.py::run_agent
-       [ ] Sample Run: one full query plus the three per-tool tests, as text
-       [ ] At least four new commits
-       [ ] Repository URL submitted — WRITE IT DOWN, you submit the same one
+       [x] Planning Loop names the branch rule and agent.py::run_agent
+       [x] Sample Run: one full query plus the three per-tool tests, as text
+       [x] At least four new commits
+       [x] Repository URL submitted — WRITE IT DOWN, you submit the same one
            next unit
 
      SUBMISSION CHECKLIST — unit 4
