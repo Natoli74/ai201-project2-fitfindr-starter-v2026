@@ -17,7 +17,8 @@ import re
 
 import config
 import trace
-from tools import search_listings, suggest_outfit, create_fit_card
+from mcp_client import call_tool
+from tools import suggest_outfit, create_fit_card
 from generate import ModelUnavailable
 
 
@@ -134,11 +135,11 @@ def run_agent(query_dict: dict | str, wardrobe: dict) -> dict:
         "message": "",
     }
 
-    session["listings"] = search_listings(
-        query_dict.get("description", ""),
-        query_dict.get("size"),
-        query_dict.get("max_price"),
-    )
+    session["listings"] = call_tool("search_listings", {
+        "description": query_dict.get("description", ""),
+        "size": query_dict.get("size"),
+        "max_price": query_dict.get("max_price"),
+    })
 
     if not session["listings"]:
         session["status"] = "stopped_empty"
