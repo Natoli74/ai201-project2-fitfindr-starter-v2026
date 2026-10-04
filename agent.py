@@ -140,6 +140,15 @@ def run_agent(query_dict: dict | str, wardrobe: dict) -> dict:
         "size": query_dict.get("size"),
         "max_price": query_dict.get("max_price"),
     })
+    trace.step(
+        "search_listings (via MCP)",
+        inputs={
+            "description": query_dict.get("description", ""),
+            "size": query_dict.get("size"),
+            "max_price": query_dict.get("max_price"),
+        },
+        returned=session["listings"],
+    )
 
     if not session["listings"]:
         session["status"] = "stopped_empty"
@@ -150,10 +159,29 @@ def run_agent(query_dict: dict | str, wardrobe: dict) -> dict:
         return session
 
     session["selected_item"] = session["listings"][0]
-    session["outfit"] = suggest_outfit(session["selected_item"], wardrobe)
-    session["fit_card"] = create_fit_card(
-        session["outfit"], session["selected_item"]
-    )
+    try:
+        session["outfit"] = suggest_outfit(session["selected_item"], wardrobe)
+        trace.step(
+            "suggest_outfit",
+            inputs={"new_item": session["selected_item"], "wardrobe": wardrobe},
+            returned=session["outfit"],
+        )
+        session["fit_card"] = create_fit_card(
+            session["outfit"], session["selected_item"]
+        )
+        trace.step(
+            "create_fit_card",
+            inputs={
+                "outfit": session["outfit"],
+                "new_item": session["selected_item"],
+            },
+            returned=session["fit_card"],
+        )
+    except ModelUnavailable as exc:
+        session["status"] = "stopped_error"
+        session["message"] = str(exc)
+        session["error"] = str(exc)
+        return session
     session["status"] = "completed"
     return session
 

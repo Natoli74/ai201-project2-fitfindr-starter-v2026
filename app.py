@@ -116,6 +116,8 @@ def _ask_one(query, wardrobe, use_trace):
     print()
     if session["status"] == "stopped_empty":
         print(f"  {session['message']}")
+    elif session["status"] == "stopped_error":
+        print(f"  {session['message']}")
     else:
         item = session["selected_item"] or {}
         print(f"  Found:    {item.get('title')} — ${item.get('price')} on {item.get('platform')}")

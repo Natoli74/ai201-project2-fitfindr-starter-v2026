@@ -316,7 +316,15 @@ that produced it:
 **Happy path**
 
 ```
-
+[1] search_listings (via MCP)
+      in:  dict with keys: description, size, max_price
+      out: 3 items: Y2K Baby Tee — Butterfly Print, Graphic Tee — 2003 Tour Bootleg Style, Vintage Band Tee — Faded Grey
+[2] suggest_outfit
+      in:  dict with keys: new_item, wardrobe
+      out: Here are 3 Y2K-inspired outfit ideas pairing your new butterfly baby tee with pieces from your wardrobe:  ### …
+[3] create_fit_card
+      in:  dict with keys: outfit, new_item
+      out: 🦋 **Unlocked: The ultimate Y2K baby tee.**   Paired your new butterfly graphic crop with dark-wash baggy denim…
 ```
 
 **Empty search**
@@ -329,6 +337,10 @@ that produced it:
 behaved differently afterwards. If the rewire didn't work, say exactly where it
 broke — the error text and the last thing that worked. That earns the point in
 full. -->
+
+`search_listings` now runs through `mcp_client.call_tool("search_listings", ...)`.
+The traced run still returned the expected listing and completed both model
+steps, so the result and downstream behavior did not change.
 
 ---
 
