@@ -203,7 +203,10 @@ def create_fit_card(outfit: str, new_item: dict) -> str:
     prompt = (
         "Write a short, engaging social-media-ready fit card caption for "
         "the proposed outfit. Reference the key details of the new item and "
-        "the outfit, and keep it concise and specific.\n\n"
+        "the outfit, and keep it concise and specific. Explicitly name at "
+        "least one concrete physical attribute from the new item, such as "
+        "its color, material, style, brand, condition, or title. Do not "
+        "return a generic caption that omits the item's physical details.\n\n"
         f"New item:\n{json.dumps(new_item, ensure_ascii=True)}\n\n"
         f"Proposed outfit:\n{outfit}"
     )
