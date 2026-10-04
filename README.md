@@ -451,13 +451,32 @@ Trace:
 
 | #   | Criterion | Target | Verdict | How I decided |
 | --- | --------- | ------ | ------- | ------------- |
-| 1   |           |        |         |               |
-| 2   |           |        |         |               |
-| 3   |           |        |         |               |
-| 4   |           |        |         |               |
-| 5   |           |        |         |               |
+| 1 | **Criterion 1 (Full three-tool run)** | 4/5 | **MET (5/5)** | All five matching-query attempts completed without stopping early, returned the Y2K baby tee, and included a fit card. |
+| 2 | **Criterion 2 (Empty search branch)** | 5/5 | **MET (5/5)** | All five attempts produced only the MCP search trace with an empty result; no outfit or fit-card step followed. The agent's empty-search message names budget, size, and broader terms. |
+| 3 | **Criterion 3 (Session state consistency)** | 5/5 | **MET (5/5)** | All five attempts selected the same structured listing. `run_agent` passes `session["selected_item"]` directly to `suggest_outfit` without reparsing. |
+| 4 | **Criterion 4 (Fit card physical attributes)** | 4/5 | **MET (5/5)** | All five generated cards referenced physical attributes such as the pink-and-purple color, butterfly graphic, cropped style, or fitted style. |
+| 5 | **Criterion 5 (Empty wardrobe resilience)** | 5/5 | **MET (5/5)** | All five empty-wardrobe attempts completed, selected the cropped denim jacket, generated general styling advice, and returned a fit card. |
 
 **Diagnoses**
+
+The baseline met every target. The matching-query and empty-wardrobe paths
+completed all three steps in 5/5 attempts. The impossible-query path stopped
+after `[1] search_listings (via MCP)` in every attempt, confirming that the
+empty branch prevented downstream tool calls and returned actionable guidance.
+
+The selected-item state criterion is supported by the implementation: the
+listing returned by the MCP call is assigned to `session["listings"]`, the
+first listing is assigned directly to `session["selected_item"]`, and that
+same dictionary is passed directly to `suggest_outfit`. The generated report
+does not serialize the full dictionary or the outfit-tool argument, so this
+part is verified from the call path rather than from the abbreviated report.
+
+The report displays `search_results: 0` for completed runs because
+`run_eval.py` reads `session["search_results"]`, while the current
+`run_agent` session uses `session["listings"]`. This is a reporting-field
+mismatch, not an empty search: the traces list 3 matching listings for the
+tee scenarios and 1 listing for the denim-jacket scenario, and each completed
+run has a selected item and fit card.
 
 ---
 
