@@ -31,6 +31,8 @@ import json
 import sys
 from pathlib import Path
 
+from resilience import retry_with_backoff
+
 SERVER = Path(__file__).parent / "mcp_server.py"
 
 
@@ -38,6 +40,7 @@ class MCPError(RuntimeError):
     """The server couldn't be reached, or it refused the call."""
 
 
+@retry_with_backoff(service="retrieval", retries=3, backoff_factor=1.5, timeout=5.0)
 def call_tool(name: str, arguments: dict):
     """
     Call one tool on your MCP server and return what it returns.

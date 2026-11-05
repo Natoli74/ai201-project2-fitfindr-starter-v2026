@@ -35,6 +35,7 @@ import sys
 import time
 
 import config
+from resilience import ExternalServiceError, retry_with_backoff
 
 _call_times: list[float] = []
 _session_calls = 0
@@ -49,7 +50,7 @@ class QuotaGuard(Exception):
     """Raised when a session blows through its request budget."""
 
 
-class ModelUnavailable(Exception):
+class ModelUnavailable(ExternalServiceError):
     """
     Raised when the model can't be reached at all — a bad key, no network, a
     model name that doesn't resolve.
@@ -58,6 +59,9 @@ class ModelUnavailable(Exception):
     useful, instead of showing a user a stack trace. Unit 4 Milestone 2 has you
     trigger it deliberately by changing one character of your key.
     """
+
+    def __init__(self, message: str):
+        super().__init__("model", RuntimeError(message))
 
 
 # ─── Cache ───────────────────────────────────────────────────────────────────
@@ -257,6 +261,11 @@ def _get_client():
     return _client
 
 
+@retry_with_backoff(service="model", retries=3, backoff_factor=1.5, timeout=5.0)
+def _generate_content(kwargs):
+    return _get_client().models.generate_content(**kwargs)
+
+
 def generate(
     prompt: str,
     system: str | None = None,
@@ -295,52 +304,26 @@ def generate(
 
     _check_budget()
 
-    last_error: Exception | None = None
-    for attempt in range(config.MAX_RETRIES):
-        _wait_for_slot()
-        try:
-            client = _get_client()
-            _call_times.append(time.monotonic())
-            _session_calls += 1
+    _wait_for_slot()
+    try:
+        _call_times.append(time.monotonic())
+        _session_calls += 1
 
-            call_config = {"temperature": temperature}
-            if system:
-                call_config["system_instruction"] = system
-            kwargs = {
-                "model": config.MODEL,
-                "contents": prompt,
-                "config": call_config,
-            }
+        call_config = {"temperature": temperature}
+        if system:
+            call_config["system_instruction"] = system
+        kwargs = {
+            "model": config.MODEL,
+            "contents": prompt,
+            "config": call_config,
+        }
 
-            response = client.models.generate_content(**kwargs)
-            _record_tokens(response)
-            text = (response.text or "").strip()
+        response = _generate_content(kwargs)
+        _record_tokens(response)
+        text = (response.text or "").strip()
 
-            if use_cache:
-                _cache_write(key, text)
-            return text
-
-        except Exception as exc:  # noqa: BLE001 — surfaced below
-            last_error = exc
-            message = str(exc).lower()
-            rate_limited = (
-                "429" in message
-                or "resource" in message and "exhaust" in message
-                or "rate" in message and "limit" in message
-            )
-            if not rate_limited:
-                raise ModelUnavailable(_explain(exc)) from exc
-            backoff = _retry_delay(exc, attempt)
-            print(
-                f"  [rate limit] service pushed back. Waiting {backoff:.0f}s "
-                f"(attempt {attempt + 1} of {config.MAX_RETRIES}). This is "
-                f"the limiter doing its job, not a bug.",
-                file=sys.stderr,
-                flush=True,
-            )
-            time.sleep(backoff)
-
-    raise RuntimeError(
-        f"Still rate limited after {config.MAX_RETRIES} attempts. Wait a "
-        f"minute and try again — your key is fine.\nLast error: {last_error}"
-    )
+        if use_cache:
+            _cache_write(key, text)
+        return text
+    except ExternalServiceError as exc:
+        raise ModelUnavailable(_explain(exc.cause)) from exc

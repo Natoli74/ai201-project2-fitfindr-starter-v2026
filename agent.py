@@ -18,6 +18,7 @@ import re
 import config
 import trace
 from mcp_client import call_tool
+from resilience import ExternalServiceError
 from tools import suggest_outfit, create_fit_card
 from generate import ModelUnavailable
 
@@ -135,11 +136,18 @@ def run_agent(query_dict: dict | str, wardrobe: dict) -> dict:
         "message": "",
     }
 
-    session["listings"] = call_tool("search_listings", {
-        "description": query_dict.get("description", ""),
-        "size": query_dict.get("size"),
-        "max_price": query_dict.get("max_price"),
-    })
+    try:
+        session["listings"] = call_tool("search_listings", {
+            "description": query_dict.get("description", ""),
+            "size": query_dict.get("size"),
+            "max_price": query_dict.get("max_price"),
+        })
+    except ExternalServiceError as exc:
+        session["status"] = "stopped_error"
+        session["message"] = exc.fallback_json()
+        session["error"] = exc.fallback()
+        session["fallback"] = exc.fallback()
+        return session
     trace.step(
         "search_listings (via MCP)",
         inputs={
@@ -177,10 +185,15 @@ def run_agent(query_dict: dict | str, wardrobe: dict) -> dict:
             },
             returned=session["fit_card"],
         )
-    except ModelUnavailable as exc:
+    except (ModelUnavailable, ExternalServiceError) as exc:
         session["status"] = "stopped_error"
-        session["message"] = str(exc)
-        session["error"] = str(exc)
+        if isinstance(exc, ExternalServiceError):
+            session["message"] = exc.fallback_json()
+            session["error"] = exc.fallback()
+            session["fallback"] = exc.fallback()
+        else:
+            session["message"] = str(exc)
+            session["error"] = str(exc)
         return session
     session["status"] = "completed"
     return session

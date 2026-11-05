@@ -7,6 +7,11 @@
 This extension adds a retry decorator with exponential backoff and timeout
 exception handling around API / model service calls.
 
+The wrapper allows three retries with a 1.5-second exponential-backoff factor
+and a strict five-second timeout per attempt. Model and retrieval failures are
+returned in the agent session as structured `external_service_unavailable`
+fallback data instead of traceback output.
+
 ## Out of Scope
 
 - Not adding a second retrieval strategy or changing vector chunking.
