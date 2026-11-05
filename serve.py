@@ -35,6 +35,7 @@ what belongs in one — and the timing field is the one everybody skips.
 
 import os
 import sys
+import time
 import threading
 
 # config first, and before anything that talks to the model: it loads your .env
@@ -45,6 +46,7 @@ from flask import Flask, jsonify, request
 
 from agent import run_agent
 from utils.data_loader import get_example_wardrobe
+from runtime_logging import append_entry
 
 app = Flask(__name__)
 
@@ -107,12 +109,25 @@ def ask():
                                                 example wardrobe the CLI uses.
     Out:  the session dict from run_agent(), as JSON.
     """
+    started = time.perf_counter()
+    raw_input = request.get_data(as_text=True)
     payload = request.get_json(silent=True) or {}
     query = (payload.get("query") or "").strip()
     if not query:
+        message = (
+            "Send JSON with a 'query' field, e.g. "
+            '{"query": "vintage graphic tee under $30"}'
+        )
+        output = {"error": message}
+        append_entry(
+            raw_input=raw_input,
+            output=output,
+            status="ERROR",
+            duration_ms=(time.perf_counter() - started) * 1000,
+            tokens_used=0,
+        )
         # 400 rather than a stack trace: the caller can act on this one.
-        return jsonify({"error": "Send JSON with a 'query' field, e.g. "
-                                 '{"query": "vintage graphic tee under $30"}'}), 400
+        return jsonify(output), 400
 
     wardrobe = payload.get("wardrobe")
     if not isinstance(wardrobe, dict):

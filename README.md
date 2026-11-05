@@ -566,6 +566,61 @@ field names would be a separate cleanup.
 
 📖 **How to run this project: [RUNNING.md](RUNNING.md)**
 
+## Trial Results
+
+| Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
+|---|---|---|---|---|---|
+| 1. Timeout Fallback | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 2. Rate Limit Retry | 3 of 3 | 3/3 | 3/3 | 3/3 | MET |
+| 3. Invalid Input | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 4. Latency under 3.5s | 3 of 3 | 3/3 | 3/3 | 3/3 | MET |
+| 5. Log Persistence | 3 of 3 | 3/3 | 3/3 | 3/3 | MET |
+
+### Runtime log samples
+
+Each sample below is an actual JSON line from `runtime.log`.
+
+**Criterion 1 — Timeout Fallback**
+Produced by `retry_with_backoff` in `resilience.py`, with the record written by
+`append_entry` in `runtime_logging.py`.
+
+```json
+{"timestamp": "2026-11-05T17:15:19.107400+00:00", "input": "criterion-1 trial-1 run-1", "output": "{\"error\": \"external_service_unavailable\", \"service\": \"criterion-timeout\", \"failure_status\": \"TIMEOUT\", \"message\": \"The criterion-timeout is temporarily unavailable. Please try again shortly.\", \"retryable\": true}", "status": "TIMEOUT", "duration_ms": 48.398, "tokens_used": 0}
+```
+
+**Criterion 2 — Rate Limit Retry**
+Produced by `retry_with_backoff` in `resilience.py` after the simulated HTTP
+429, with the record written by `append_entry` in `runtime_logging.py`.
+
+```json
+{"timestamp": "2026-11-05T17:15:11.625399+00:00", "input": "criterion-2 trial-1 run-1", "output": "{\"ok\": true}", "status": "RATE_LIMIT", "duration_ms": 0.19, "tokens_used": 0}
+```
+
+**Criterion 3 — Invalid Input**
+Produced by `ask` in `serve.py` and written by `append_entry` in
+`runtime_logging.py` before the HTTP 400 response.
+
+```json
+{"timestamp": "2026-11-05T17:15:11.661806+00:00", "input": "", "output": "{\"error\": \"Send JSON with a 'query' field, e.g. {\\\"query\\\": \\\"vintage graphic tee under $30\\\"}\"}", "status": "ERROR", "duration_ms": 0.026, "tokens_used": 0}
+```
+
+**Criterion 4 — Execution Latency**
+Produced by `run_agent` in `agent.py` and written by
+`instrument_execution` in `runtime_logging.py`.
+
+```json
+{"timestamp": "2026-11-05T17:15:11.656694+00:00", "input": "criterion-4/5 trial-1 run-1", "output": "{\"listings\": [{\"title\": \"Trial item\", \"price\": 10, \"platform\": \"test\"}], \"selected_item\": {\"title\": \"Trial item\", \"price\": 10, \"platform\": \"test\"}, \"outfit\": \"trial outfit\", \"fit_card\": \"trial fit card\", \"status\": \"completed\", \"message\": \"\"}", "status": "SUCCESS", "duration_ms": 0.391, "tokens_used": 0}
+```
+
+**Criterion 5 — Structured Log Persistence**
+Produced by `instrument_execution` in `runtime_logging.py` around
+`run_agent` in `agent.py`; the complete six-field schema was validated for
+all three runs in each pass.
+
+```json
+{"timestamp": "2026-11-05T17:15:11.656694+00:00", "input": "criterion-4/5 trial-1 run-1", "output": "{\"listings\": [{\"title\": \"Trial item\", \"price\": 10, \"platform\": \"test\"}], \"selected_item\": {\"title\": \"Trial item\", \"price\": 10, \"platform\": \"test\"}, \"outfit\": \"trial outfit\", \"fit_card\": \"trial fit card\", \"status\": \"completed\", \"message\": \"\"}", "status": "SUCCESS", "duration_ms": 0.391, "tokens_used": 0}
+```
+
 ## Instrumentation
 
 The following ten JSON lines were appended to `runtime.log` by `measure_runtime.py`:
