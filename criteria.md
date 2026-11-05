@@ -1,119 +1,66 @@
-# Acceptance criteria — FitFindr
+# Shape B Acceptance Criteria
 
-Five criteria that say what "working" means for this agent, written in unit 3
-**before** any results existed.
+These criteria define objective, repeatable checks for the failure-hardening
+extension and the existing FitFindr execution path.
 
-An acceptance criterion names a target: a number, a count, a rate, or something
-a person could plainly observe. _"The agent handles errors"_ is an opinion.
-_"When search returns nothing, the agent stops before calling the second tool,
-in 5 of 5 tries"_ is a criterion.
+## 1. Timeout Fallback (Extension)
 
-Under each one, write a sentence or two on **why that target** and not a
-stricter one. A reason that says something about your tools, your loop, or the
-data earns credit; _"80% seemed reasonable"_ does not.
+When an API or external service call is forced to exceed the strict 5-second
+timeout, **5 of 5 runs** must return a graceful fallback JSON message without
+raising a traceback or crashing the caller.
 
-> Missing your own targets next unit costs you nothing. Setting a target so
-> easy you can't miss it does.
+**Numerical target:** 5/5 successful fallback responses; 0/5 traceback
+responses.
 
-**Two are written for you. You write three.**
+**Rationale:** Prevents UI hangs and unhandled exception tracebacks when a
+remote model or retrieval service stops responding.
 
----
+## 2. Rate Limit Retry Backoff (Extension)
 
-## 1. A matching query completes all three tools
+Under simulated HTTP 429 errors, the retry decorator must apply exponential
+backoff and successfully resolve the operation on retry in **3 of 3
+attempted scenarios**.
 
-Given a query that matches at least one listing, the agent completes all three
-tool calls and returns a fit card — in at least 4 of 5 tries.
+**Numerical target:** 3/3 scenarios succeed after a retry; each scenario
+records at least 1 retry and uses backoff delays of
+`1.5 * 2^attempt` seconds.
 
-**Why this target:**
+**Rationale:** Prevents transient rate spikes from dropping otherwise valid
+queries while keeping retry behavior bounded and measurable.
 
-The agent must chain three model-mediated tool calls, so one run may fail from
-transient tool-selection or formatting variation even when the search finds an
-item. Requiring 4 of 5 demonstrates reliable end-to-end behavior while allowing
-for that non-determinism.
+## 3. Empty / Invalid Input (Extension)
 
----
+For an empty string and malformed JSON payloads sent to `POST /ask`, the
+service must return an HTTP 400-equivalent response in **5 of 5 runs** for
+each invalid-input case, with a structured error message and no traceback.
 
-## 2. An impossible query stops before the second tool
+**Numerical target:** 10/10 invalid-input requests return status 400; 0/10
+return status 500 or an unhandled exception.
 
-Given a query that matches no listings, the agent stops before calling
-`suggest_outfit` and returns a message naming what to change — 5 of 5 tries.
+**Rationale:** Ensures edge-case inputs fail fast at the HTTP boundary instead
+of entering the agent loop or producing confusing downstream failures.
 
-**Why this target:**
+## 4. Execution Latency
 
-Once `search_listings` returns `[]`, the orchestration loop has a deterministic
-guard that stops before `suggest_outfit` and produces the change message. Since
-this path does not depend on completing another model-generated tool call, it
-should succeed in all 5 tries.
+Standard successful queries that find at least one listing must complete with
+an average latency under **3.5 seconds across 3 full trial batches**.
 
----
+**Numerical target:** Run 3 batches of 3 matching queries (9 total runs);
+each batch average must be `< 3500 ms`.
 
-## 3. Something about state
+**Rationale:** Maintains an acceptable user response time while measuring
+normal end-to-end search, model, and fit-card execution rather than a single
+best-case request.
 
-The exact item dictionary returned by `search_listings` in
-`session["selected_item"]` must match the item passed into `suggest_outfit`
-without requiring re-parsing or prompt re-asking — in 5 of 5 tries.
+## 5. Structured Log Persistence
 
-**Why this target:**
+**100% of execution runs** must append exactly one valid JSON object to
+`runtime.log` containing `timestamp`, `input`, `output`, `status`,
+`duration_ms`, and either `cost_usd` or `tokens_used`.
 
-The selected item is structured state passed directly between tools, so exact
-equality should be deterministic rather than affected by model wording.
+**Numerical target:** For a 10-run measurement, 10/10 new lines parse as JSON,
+10/10 contain all six required fields, and 10/10 have status values from
+`SUCCESS`, `TIMEOUT`, `RATE_LIMIT`, or `ERROR`.
 
----
-
-## 4. Something about the fit card
-
-Generated fit cards must explicitly reference at least one physical attribute
-(color, material, style, or brand) from `session["selected_item"]` — in at least
-4 of 5 tries.
-
-**Why this target:**
-
-The fit card is generated by a model and may vary in wording, but it should
-still use structured details from the selected item in most runs.
-
----
-
-## 5. Your choice
-
-When provided an empty wardrobe array `[]`, the agent completes execution
-without throwing runtime errors and produces a valid fit card — in 5 of 5
-tries.
-
-**Why this target:**
-
-An empty wardrobe is a valid boundary state that the agent should handle
-through the same model-call path without crashing.
-
----
-
-<!-- ─────────────────────────────────────────────────────────────────────────
-     UNIT 4 — read this before you change anything above.
-
-     If a criterion turns out to be BROKEN rather than merely unmet, you can
-     revise it, and that earns credit. But never delete or edit the original
-     line. Add the revision underneath it, like this:
-
-         ## 4. Something about the fit card
-
-         The fit card is different every time.
-
-         **Why this target:** ...
-
-         > **Revised in unit 4:** For 5 different items, the 5 fit cards share
-         > no opening sentence.
-         >
-         > **Why revised:** "different" wasn't checkable — two cards that
-         > differed by one word still counted. The new version is something I
-         > can actually score.
-
-     That's a revision because the criterion couldn't be MEASURED.
-
-     Lowering a target because you missed it is not a revision, and it costs
-     you the point:
-
-         ✗ "I said the empty search stops it 5 of 5 times, but I got 3 of 5,
-            so 3 of 5 is more realistic."
-
-     A number you missed stays where it is, gets diagnosed, and gets a fix
-     attempted. That's where the points are.
-     ───────────────────────────────────────────────────────────────────────── -->
+**Rationale:** Enables operational auditability for both successful requests
+and caught failures, including measured duration and model usage.
