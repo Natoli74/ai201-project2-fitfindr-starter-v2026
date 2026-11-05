@@ -1,5 +1,18 @@
 # FitFindr
 
+# The Shape
+
+## Shape B — Harden against failure
+
+This extension adds a retry decorator with exponential backoff and timeout
+exception handling around API / model service calls.
+
+## Out of Scope
+
+- Not adding a second retrieval strategy or changing vector chunking.
+- Not rebuilding or modifying the frontend/UI.
+- Not rewriting the core LLM orchestration pipeline from scratch.
+
 # Unit 3
 
 ## What This Does

@@ -64,7 +64,7 @@ SEARCH_RESULT_LIMIT = 10
 
 # ─── Model ───────────────────────────────────────────────────────────────────
 
-MODEL = os.getenv("AI201_MODEL", "gemini-3.5-flash-lite")
+MODEL = os.getenv("AI201_MODEL", "gemini-3.6-flash-lite")
 
 
 # ─── Rate limiting and quota guards ──────────────────────────────────────────
@@ -76,7 +76,7 @@ MODEL = os.getenv("AI201_MODEL", "gemini-3.5-flash-lite")
 # it's waiting; that pause is not a bug.
 #
 # REQUESTS_PER_MINUTE is 15 because that is the actual free-tier limit for
-# gemini-3.5-flash-lite — the API reports it as
+# gemini-3.6-flash-lite — the API reports it as
 # GenerateRequestsPerMinutePerProjectPerModel-FreeTier, quotaValue 15. Raising
 # it does not buy you more quota; it just means you hit the limit at the
 # service instead of being paced here, and a paced wait is much cheaper than a
