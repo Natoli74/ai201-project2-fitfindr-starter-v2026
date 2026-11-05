@@ -20,10 +20,19 @@ class ExternalServiceError(RuntimeError):
         self.cause = cause
         super().__init__(f"{service} call failed: {cause}")
 
+    def failure_status(self) -> str:
+        message = str(self.cause).lower()
+        if "timeout" in message or "timed out" in message:
+            return "TIMEOUT"
+        if "429" in message or "rate" in message and "limit" in message:
+            return "RATE_LIMIT"
+        return "ERROR"
+
     def fallback(self) -> dict[str, Any]:
         return {
             "error": "external_service_unavailable",
             "service": self.service,
+            "failure_status": self.failure_status(),
             "message": (
                 f"The {self.service} is temporarily unavailable. "
                 "Please try again shortly."

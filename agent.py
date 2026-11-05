@@ -19,6 +19,7 @@ import config
 import trace
 from mcp_client import call_tool
 from resilience import ExternalServiceError
+from runtime_logging import instrument_execution
 from tools import suggest_outfit, create_fit_card
 from generate import ModelUnavailable
 
@@ -53,6 +54,7 @@ def new_session(query: str, wardrobe: dict) -> dict:
 
 # ── planning loop ─────────────────────────────────────────────────────────────
 
+@instrument_execution
 def run_agent(query_dict: dict | str, wardrobe: dict) -> dict:
     """
     Run the loop once and return the finished session.
