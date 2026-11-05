@@ -645,3 +645,48 @@ Cost is measured with the model's reported token counts. Retrieval-only or fallb
 - Total measured tokens: 0
 - Number of runs: 10
 - Arithmetic: total tokens / runs = 0 / 10 = 0.00 tokens per run
+
+## Results After Fix
+
+### Diagnosis and targeted fix
+
+The original trial results contained no `MISSED` criteria; all five baseline
+verdicts were `MET`, so there was no failed stage to diagnose or remediate.
+The targeted hardening fix addressed a related weakness at the retry
+classification stage: `ExternalServiceError.failure_status()` previously
+recognized rate limits only when the exception text contained `429` or the
+words `rate` and `limit`. Real HTTP clients may expose a 429 through the
+exception's `status_code` attribute without putting either phrase in the
+message.
+
+The fix in `resilience.py` now checks `cause.status_code == 429` before the
+message fallback. This preserves the existing exponential backoff
+(`1.5 * 2^attempt`) and retry count while ensuring structured fallback
+classification remains `RATE_LIMIT` for real HTTP 429 exceptions.
+
+| Criterion | Before Fix | After Fix Run 1 | After Fix Run 2 | After Fix Run 3 | Verdict |
+|---|---|---|---|---|---|
+| 1. Timeout Fallback | 5/5 | 5/5 | 5/5 | 5/5 | MET |
+| 2. Rate Limit Retry | 3/3 | 3/3 | 3/3 | 3/3 | MET |
+| 3. Invalid Input | 5/5 | 5/5 | 5/5 | 5/5 | MET |
+| 4. Latency under 3.5s | 3/3 | 3/3 | 3/3 | 3/3 | MET |
+| 5. Log Persistence | 3/3 | 3/3 | 3/3 | 3/3 | MET |
+
+### What's Still Broken
+
+No acceptance criterion remains missed. Live model calls were unavailable in
+the measurement environment, so token usage remained zero and the latency
+trial used mocked external calls; the next step would be a credentialed
+end-to-end run to measure real model latency and tokens. I stopped there
+because obtaining credentials or changing the model service is outside this
+Shape B hardening scope.
+
+### Cost Calculation
+
+The measured single-run cost proxy is `0.00 tokens` because the unavailable
+model service reported zero tokens:
+
+`0.00 tokens/run * 100 users/day = 0.00 tokens/day`
+
+This is an observed instrumentation result, not a claim that a credentialed
+model provider has zero monetary cost.

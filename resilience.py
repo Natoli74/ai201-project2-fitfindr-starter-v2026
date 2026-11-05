@@ -24,6 +24,8 @@ class ExternalServiceError(RuntimeError):
         message = str(self.cause).lower()
         if "timeout" in message or "timed out" in message:
             return "TIMEOUT"
+        if getattr(self.cause, "status_code", None) == 429:
+            return "RATE_LIMIT"
         if "429" in message or "rate" in message and "limit" in message:
             return "RATE_LIMIT"
         return "ERROR"
